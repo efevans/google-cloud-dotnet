@@ -376,7 +376,7 @@
         "dotnet-sdk"
       ],
       "allowedVersions": "<9.0.0",
-      "minimumReleaseAge": "7 days"
+      "minimumReleaseAge": "35 days"
     },
     {
       "matchPaths": [
