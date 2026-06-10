@@ -1,7 +1,7 @@
 {
   "extends": [
     "config:base",
-    ":disableDependencyDashboard"
+    ":dependencyDashboard"
   ],
   "ignorePresets": [
     ":ignoreModulesAndTests"
@@ -357,6 +357,11 @@
   "ignoreDeps": [
     "Grpc.Core"
   ],
+  "enabledManagers":[
+    "github-actions",
+    "dockerfile",
+    "nuget"
+  ],
   "packageRules": [
     {
       "matchPackagePrefixes": [
@@ -370,7 +375,8 @@
         "System.Collections.Immutable",
         "dotnet-sdk"
       ],
-      "allowedVersions": "<9.0.0"
+      "allowedVersions": "<9.0.0",
+      "minimumReleaseAge": "35 days"
     },
     {
       "matchPaths": [
