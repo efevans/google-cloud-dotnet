@@ -418,5 +418,6 @@
   "schedule": [
     "before 8am"
   ],
-  "timezone": "Europe/London"
+  "timezone": "Europe/London",
+  "includeForks": true
 }
