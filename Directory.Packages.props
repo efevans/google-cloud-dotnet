@@ -4,31 +4,27 @@
       - Default Grpc.Core versions: these should typically be
       - changed together, usually matching the version used by GAX.
       -->
+    <PackageVersion Include="Google.Cloud.SecretManager.V1" Version="2.7.0" />
     <PackageVersion Include="Grpc.Core" Version="[2.46.6, 3.0.0)" />
     <PackageVersion Include="Grpc.Core.Testing" Version="[2.46.6, 3.0.0)" />
     <PackageVersion Include="Grpc.Core.Api" Version="[2.71.0, 3.0.0)" />
     <PackageVersion Include="Grpc.Net.Client" Version="[2.71.0, 3.0.0)" />
-
     <!-- Default GAX versions: these should typically be changed together -->
     <PackageVersion Include="Google.Api.Gax" Version="[4.13.1, 5.0.0)" />
     <PackageVersion Include="Google.Api.Gax.Rest" Version="[4.13.1, 5.0.0)" />
     <PackageVersion Include="Google.Api.Gax.Grpc" Version="[4.13.1, 5.0.0)" />
     <PackageVersion Include="Google.Api.Gax.Testing" Version="[4.13.1, 5.0.0)" />
     <PackageVersion Include="Google.Api.Gax.Grpc.Testing" Version="[4.13.1, 5.0.0)" />
-
     <!-- Support libraries (rarely referenced directly) -->
     <PackageVersion Include="Google.Apis" Version="[1.73.0, 2.0.0)" />
-
     <!--
       - The Google.Protobuf version should usually be the one that
       - the current Google.Api.CommonProtos version depends on.
       -->
     <PackageVersion Include="Google.Api.CommonProtos" Version="[2.17.0, 3.0.0)" />
     <PackageVersion Include="Google.Protobuf" Version="3.31.1" />
-
     <!-- System packages -->
     <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.6" />
-
     <!-- MS Extensions packages -->
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -36,9 +32,8 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version= "8.0.1" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version= "10.5.1" />
-
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.5.1" />
     <!-- Misc packages (might warrant a reorganization at some point) -->
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
