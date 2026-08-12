@@ -346,9 +346,12 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
                     // Presence/visibility changes.
                     if (inO && o.IsExported())
                     {
-                        yield return inN ?
-                            Diff.Major(Cause.PropertyMadeNotExported, $"{prefix} made non-public.") :
-                            Diff.Major(Cause.PropertyRemoved, $"{prefix} removed.");
+                        if (!PropertyImplementationExistsInAncestor(descendentType: _n, property: o))
+                        {
+                            yield return inN ?
+                                Diff.Major(Cause.PropertyMadeNotExported, $"{prefix} made non-public.") :
+                                Diff.Major(Cause.PropertyRemoved, $"{prefix} removed.");
+                        }
                     }
                     else if (inN && n.IsExported())
                     {
@@ -358,6 +361,41 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
                             diff(Cause.PropertyAdded, $"{prefix} added.");
                     }
                 }
+            }
+
+            static bool PropertyImplementationExistsInAncestor(TypeDefinition descendentType, PropertyDefinition property) =>
+                GetPropertyImplementationFromAncestor(descendentType, property) is not null;
+
+            static PropertyDefinition GetPropertyImplementationFromAncestor(TypeDefinition descendentType, PropertyDefinition property)
+            {
+                // C# doesn't allow adding a getter or setter that doesn't exist in the base class, so either should work to confirm
+                // if there's an implementation higher up in the hierarchy
+                var propertyMethod = property.GetMethod ?? property.SetMethod;
+
+                // First check if the property method itself is sealed or the root for this method slot.
+                if (!propertyMethod.IsVirtual)
+                {
+                    return null;
+                }
+                if (propertyMethod.IsNewSlot)
+                {
+                    return null;
+                }
+
+                // Look for the property definition in the base type.
+                var baseType = descendentType.BaseType?.Resolve();
+                while (baseType != null)
+                {
+                    if (baseType.Properties.FirstOrDefault(p => SamePropertyComparer.Instance.Equals(p, property)) is PropertyDefinition ancestorProp)
+                    {
+                        return ancestorProp;
+                    }
+
+                    baseType = descendentType.BaseType?.Resolve();
+                }
+
+                // Finally return null if we didn't find an implementation among the ancestors.
+                return null;
             }
         }
 

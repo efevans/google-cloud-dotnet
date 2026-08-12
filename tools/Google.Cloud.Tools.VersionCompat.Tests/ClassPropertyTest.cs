@@ -1,4 +1,4 @@
-﻿// Copyright 2019 Google LLC
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ namespace Google.Cloud.Tools.VersionCompat.Tests.ClassProperty
 
     namespace PropertyRemoved.A { public class C { public int P { get; } } }
     namespace PropertyRemoved.B { public class C { } }
+
+    namespace PropertyRemovedWithAncestorImplementation.Virtual { public class C { public virtual int P => 5; } }
+    namespace PropertyRemovedWithAncestorImplementation.A { public class C : Virtual.C { public override int P => 6; } }
+    namespace PropertyRemovedWithAncestorImplementation.B { public class C : Virtual.C { } }
 
     namespace PropertyMadeExported.A { public class C { private int P { get; } } }
     namespace PropertyMadeExported.B { public class C { public int P { get; } } }
@@ -109,6 +113,7 @@ namespace Google.Cloud.Tools.VersionCompat.Tests.ClassProperty
     {
         [Fact] public void PropertyAdded() => TestMinor(Cause.PropertyAdded);
         [Fact] public void PropertyRemoved() => TestMajor(Cause.PropertyRemoved);
+        [Fact] public void PropertyRemovedWithAncestorImplementation() => TestNone();
         [Fact] public void PropertyMadeExported() => TestMinor(Cause.PropertyMadeExported);
         [Fact] public void PropertyMadeNotExported() => TestMajor(Cause.PropertyMadeNotExported);
         [Fact] public void PropertyTypeChanged() => TestMajor(Cause.PropertyTypeChanged);
