@@ -278,12 +278,12 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
 
         public IEnumerable<Diff> Properties(TypeType typeType)
         {
-            var oProps = _o.ExportedProperties().ToImmutableHashSet(SamePropertyComparer.Instance);
-            var nProps = _n.ExportedProperties().ToImmutableHashSet(SamePropertyComparer.Instance);
-            foreach (var prop in oProps.Union(nProps).OrderBy(x => x.FullName))
+            var oPropAccessors = GetPropertyAccessDefinitions(_o);
+            var nPropAccessors = GetPropertyAccessDefinitions(_n);
+            foreach (var accessor in oPropAccessors.Union(nPropAccessors).OrderBy(x => x.PropertyDefinition.FullName))
             {
-                var inO = oProps.TryGetValue(prop, out var o);
-                var inN = nProps.TryGetValue(prop, out var n);
+                var inO = oPropAccessors.TryGetValue(accessor, out var o);
+                var inN = nPropAccessors.TryGetValue(accessor, out var n);
 
                 if (inO && !inN)
                 {
@@ -299,24 +299,23 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
                 }
 
                 FormattableString prefix = $"{_o.TypeType()} '{_o}'; property '{o}'";
-                if (inO && inN && o.IsExported() && n.IsExported())
+                if (inO && inN && o.IsExported && n.IsExported)
                 {
                     if (typeType == TypeType.Class || typeType == TypeType.Struct)
                     {
                         // Property present and exported in both types.
-                        if (o.IsStatic() && !n.IsStatic())
+                        if (o.IsStatic && !n.IsStatic)
                         {
                             yield return Diff.Major(Cause.PropertyMadeNonStatic, $"{prefix} made non-static.");
                         }
-                        else if (!o.IsStatic() && n.IsStatic())
+                        else if (!o.IsStatic && n.IsStatic)
                         {
                             yield return Diff.Major(Cause.PropertyMadeStatic, $"{prefix} made static.");
                         }
                         else
                         {
-                            var diffs = MethodModifiers(o.GetMethod ?? o.SetMethod, n.GetMethod ?? n.SetMethod, Cause.PropertyModifierChanged, prefix)
-                                .Concat(MethodAccessModifiers(o.GetMethod, n.GetMethod, Cause.PropertyAccessModifierChanged, $"{prefix} getter"))
-                                .Concat(MethodAccessModifiers(o.SetMethod, n.SetMethod, Cause.PropertyAccessModifierChanged, $"{prefix} setter"));
+                            var diffs = MethodModifiers(o.AccessorDefinition, n.AccessorDefinition, Cause.PropertyModifierChanged, prefix)
+                                .Concat(MethodAccessModifiers(o.AccessorDefinition, n.AccessorDefinition, Cause.PropertyAccessModifierChanged, prefix));
                             foreach (var diff in diffs)
                             {
                                 yield return diff;
@@ -328,7 +327,7 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
                         yield return Diff.Major(Cause.PropertyTypeChanged, $"{prefix} return type changed to '{n.PropertyType}'.");
                     }
                     // No need to check parameter names, or in/out/ref.
-                    foreach (var diff in Obsoleteness(o, n, prefix))
+                    foreach (var diff in Obsoleteness(o.PropertyDefinition, n.PropertyDefinition, prefix))
                     {
                         yield return diff;
                     }
@@ -336,13 +335,13 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
                 else
                 {
                     // Presence/visibility changes.
-                    if (inO && o.IsExported() && o.IsDefinedInType(_o))
+                    if (inO && o.IsExported)
                     {
                         yield return inN ?
                             Diff.Major(Cause.PropertyMadeNotExported, $"{prefix} made non-public.") :
                             Diff.Major(Cause.PropertyRemoved, $"{prefix} removed.");
                     }
-                    else if (inN && n.IsExported() && o.IsDefinedInType(_n))
+                    else if (inN && n.IsExported)
                     {
                         var diff = typeType == TypeType.Class || typeType == TypeType.Struct ? (Func<Cause, FormattableString, Diff>) Diff.Minor : Diff.Major;
                         yield return inO ?
@@ -351,6 +350,11 @@ namespace Google.Cloud.Tools.VersionCompat.Detectors
                     }
                 }
             }
+
+            static ImmutableHashSet<PropertyAccessorDefinition> GetPropertyAccessDefinitions(TypeDefinition typeDefinition) =>
+                typeDefinition.Properties.SelectMany<PropertyDefinition, PropertyAccessorDefinition>(p => [new PropertyAccessorDefinition(p, p.SetMethod), new PropertyAccessorDefinition(p, p.GetMethod)])
+                    .Where(p => p.AccessorDefinition is not null)
+                    .ToImmutableHashSet(SamePropertyAccessorComparer.Instance);
         }
 
         public IEnumerable<Diff> Constants(TypeType typeType)
