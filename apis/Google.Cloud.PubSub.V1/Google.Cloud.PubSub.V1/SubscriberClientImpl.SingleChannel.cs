@@ -787,16 +787,31 @@ public sealed partial class SubscriberClientImpl
                 // by 2. Allow this, to ensure all queues get fairly sent.
                 acks = _ackQueue.Dequeue(_maxAckExtendSendCount, null);
                 nacks = _nackQueue.Dequeue(_maxAckExtendSendCount, null);
-                var ackSet = new HashSet<string>(acks);
-                var nackSet = new HashSet<string>(nacks);
                 // If user handler operations have been cancelled, let's clear the extend queue.
                 // But acks and nacks continue to be sent as usual.
                 if (_handlerCts.IsCancellationRequested)
                 {
                     _extendQueue.Clear();
+                    extends = new List<TimedId>();
                 }
-                // Only send extends for ids that aren't also about to ack or nack.
-                extends = _extendQueue.Dequeue(_maxAckExtendSendCount, x => !ackSet.Contains(x.Id) && !nackSet.Contains(x.Id));
+                else if (_extendQueue.Count == 0)
+                {
+                    extends = new List<TimedId>();
+                }
+                else if (acks.Count == 0 && nacks.Count == 0)
+                {
+                    // No acks or nacks in-flight, so no set filtering is required.
+                    extends = _extendQueue.Dequeue(_maxAckExtendSendCount, null);
+                }
+                else
+                {
+                    // Only send extends for ids that aren't also about to ack or nack.
+                    var ackSet = acks.Count > 0 ? new HashSet<string>(acks) : null;
+                    var nackSet = nacks.Count > 0 ? new HashSet<string>(nacks) : null;
+                    extends = _extendQueue.Dequeue(_maxAckExtendSendCount, x =>
+                        (ackSet == null || !ackSet.Contains(x.Id)) &&
+                        (nackSet == null || !nackSet.Contains(x.Id)));
+                }
             }
             if (acks.Count > 0)
             {
