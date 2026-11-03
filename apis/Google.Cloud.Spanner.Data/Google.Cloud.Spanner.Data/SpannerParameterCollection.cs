@@ -238,8 +238,13 @@ namespace Google.Cloud.Spanner.Data
             MapField<string, V1.Type> requestParamTypes,
             SpannerConversionOptions options)
         {
-            FillSpannerInternalValues(valueDictionary, options);
-            FillSpannerInternalTypes(requestParamTypes, options);
+            foreach (var parameter in _innerList)
+            {
+                var name = GetCorrectedParameterName(parameter.ParameterName);
+                var dbType = parameter.GetConfiguredSpannerDbType(options);
+                valueDictionary[name] = dbType.ToProtobufValue(parameter.GetValidatedValue());
+                requestParamTypes[name] = dbType.ToProtobufType();
+            }
         }
 
         /// <summary>
@@ -248,24 +253,6 @@ namespace Google.Cloud.Spanner.Data
         /// </summary>
         private string GetCorrectedParameterName(string parameterName)
             => parameterName?.StartsWith("@") ?? false ? parameterName.Substring(1) : parameterName;
-
-        private void FillSpannerInternalValues(MapField<string, Value> valueDictionary, SpannerConversionOptions options)
-        {
-            foreach (var parameter in _innerList)
-            {
-                valueDictionary[GetCorrectedParameterName(parameter.ParameterName)]
-                    = parameter.GetConfiguredSpannerDbType(options).ToProtobufValue(parameter.GetValidatedValue());
-            }
-        }
-
-        private void FillSpannerInternalTypes(MapField<string, V1.Type> typeDictionary, SpannerConversionOptions options)
-        {
-            foreach (var parameter in _innerList)
-            {
-                typeDictionary[GetCorrectedParameterName(parameter.ParameterName)]
-                    = parameter.GetConfiguredSpannerDbType(options).ToProtobufType();
-            }
-        }
 
         /// <inheritdoc />
         public override bool IsFixedSize => false;
