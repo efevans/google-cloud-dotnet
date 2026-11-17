@@ -574,29 +574,6 @@ namespace Google.Cloud.BigQuery.V2.IntegrationTests
             Assert.Throws<InvalidOperationException>(() => client.GetQueryResults(job.Reference));
         }
 
-        [Fact(Skip = "Processes 2TB - costs money!")]
-        public void ExecuteQuery_Timeout()
-        {
-            // SQL that I happen to know takes over 10 seconds to query.
-            string sql = "SELECT id FROM [bigquery-public-data:github_repos.contents] where content contains 'NodaTime' AND content contains '2.0.2' LIMIT 1000";
-            BigQueryClient client = BigQueryClient.Create(_fixture.ProjectId);
-            var queryOptions = new QueryOptions { UseLegacySql = true, UseQueryCache = false };
-            var resultsOptions = new GetQueryResultsOptions { Timeout = TimeSpan.FromSeconds(2) };
-            Assert.Throws<TimeoutException>(() => client.ExecuteQuery(sql, null, queryOptions, resultsOptions));
-        }
-
-        [Fact(Skip = "Processes 2TB - costs money!")]
-        public void GetQueryResults_Timeout()
-        {
-            // SQL that I happen to know takes over 10 seconds to query.
-            string sql = "SELECT id FROM [bigquery-public-data:github_repos.contents] where content contains 'NodaTime' AND content contains '2.0.2' LIMIT 1000";
-            BigQueryClient client = BigQueryClient.Create(_fixture.ProjectId);
-            var queryOptions = new QueryOptions { UseLegacySql = true, UseQueryCache = false };
-            var job = client.CreateQueryJob(sql, null, queryOptions);
-            var resultsOptions = new GetQueryResultsOptions { Timeout = TimeSpan.FromSeconds(2) };
-            Assert.Throws<TimeoutException>(() => job.GetQueryResults(resultsOptions));
-        }
-
         [Fact]
         public void MultiplePagesWithStartIndex()
         {
